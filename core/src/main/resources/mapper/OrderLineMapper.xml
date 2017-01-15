@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hbi.core.mapper.OrderLineMapper">
+    <select id="selectByHeaderId" parameterType="Integer" resultType="hbi.core.dto.OrderLine">
+     SELECT
+        line.line_id 'lineId',
+        line.HEADER_ID 'headerId',
+        line.OBJECT_VERSION_NUMBER 'objectVersionNumber',
+        line.LINE_NUMBER 'lineNumber',
+        items.item_code 'itemCode',
+        line.COMPANY_ID 'companyId',
+        line.ORDER_QUANTITY_UOM 'orderQuantityUom',
+        line.inventory_item_id 'inventoryItemId',
+        items.item_description 'itemDescription',
+        line.orderd_quantity 'orderdQuantity',
+        line.order_quantity_uom 'orderQuantityUom',
+        line.unit_selling_price 'unitSellingPrice',
+        IFNULL(
+                line.ORDERD_QUANTITY * line.UNIT_SELLING_PRICE,0) 'sellingPrice',
+        line.description 'description'
+    FROM
+        `hap_om_order_lines` line,
+        `hap_inv_inventory_items` items
+    WHERE
+        line.inventory_item_id = items.inventory_item_id
+    AND line.header_id =#{headerId}
+
+    </select>
+
+    <update id="updateLine" parameterType="hbi.core.dto.OrderLine">
+      UPDATE
+       `hap_om_order_lines`
+      SET
+       inventory_item_id=#{inventoryItemId},
+       orderd_quantity=#{orderdQuantity},
+       unit_selling_price=#{unitSellingPrice}
+      WHERE line_id=#{lineId}
+    </update>
+
+    <delete id="deleteLineByLineId" parameterType="Integer">
+        DELETE FROM hap_om_order_lines WHERE line_id=#{lineId}
+    </delete>
+
+    <delete id="deleteLineByHeaderId" parameterType="Integer">
+        DELETE FROM hap_om_order_lines WHERE header_id=#{headerId}
+    </delete>
+    <insert id="insertLine" parameterType="hbi.core.dto.OrderLine" >
+        INSERT INTO hap_om_order_lines (
+        LINE_ID,
+        HEADER_ID,
+        LINE_NUMBER,
+        INVENTORY_ITEM_ID,
+        ORDERD_QUANTITY,
+        ORDER_QUANTITY_UOM,
+        UNIT_SELLING_PRICE,
+        DESCRIPTION,
+        COMPANY_ID
+      )
+      VALUES
+        (0,#{headerId},
+        #{lineNumber},#{inventoryItemId},
+        #{orderdQuantity},#{orderQuantityUom},
+        #{unitSellingPrice},#{description},#{companyId})
+    </insert>
+
+</mapper>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hbi.core.mapper.OrderHeaderMapper">
+
+    <select id="selectOrderHeader" parameterType="hbi.core.dto.OrderHeader" resultType="hbi.core.dto.OrderHeader">
+
+        SELECT
+        hooh.HEADER_ID 'headerId',
+        hooh.ORDER_NUMBER 'orderNumber',
+        hooh.COMPANY_ID 'companyId',
+        hoc.COMPANY_NAME 'companyName',
+        hooh.ORDER_DATE 'orderDate',
+        hooh.ORDER_STATUS 'orderStatus',
+        hooh.CUSTOMER_ID 'customerId',
+        hac.CUSTOMER_NAME 'customerName',
+        IFNULL(SUM(hool.ORDERD_QUANTITY * hool.UNIT_SELLING_PRICE),0) 'sellingPrice'
+        FROM
+        hap_om_order_headers hooh
+        INNER JOIN
+        hap_org_companys hoc ON hooh.COMPANY_ID = hoc.COMPANY_ID
+        INNER JOIN
+        hap_ar_customers hac ON hooh.CUSTOMER_ID = hac.CUSTOMER_ID
+        LEFT JOIN
+        hap_om_order_lines hool ON hooh.HEADER_ID = hool.HEADER_ID
+        WHERE 1 = 1
+        <if test="companyId != null &amp;&amp; companyId != 0">
+            AND hooh.COMPANY_ID = #{companyId}
+        </if>
+        <if test="customerId != null &amp;&amp; customerId != 0">
+            AND hooh.CUSTOMER_ID = #{customerId}
+        </if>
+        <if test="inventoryItemId != null &amp;&amp; inventoryItemId != 0">
+            AND hool.INVENTORY_ITEM_ID = #{inventoryItemId}
+        </if>
+        <if test="orderNumber != null &amp;&amp; !&quot;&quot;.equals(orderNumber)">
+            AND hooh.ORDER_NUMBER = #{orderNumber}
+        </if>
+        <if test="orderStatus != null &amp;&amp; !&quot;&quot;.equals(orderStatus)">
+            AND hooh.ORDER_STATUS = #{orderStatus}
+        </if>
+        GROUP BY hooh.HEADER_ID
+    </select>
+
+    <select id="selectByHeaderId" parameterType="Integer" resultType="hbi.core.dto.OrderHeader">
+        SELECT
+        hooh.ORDER_NUMBER 'orderNumber',
+        hooh.COMPANY_ID 'companyId',
+        hoc.COMPANY_NAME 'companyName',
+        hooh.CUSTOMER_ID 'customerId',
+        hac.CUSTOMER_NAME 'customerName',
+        hooh.ORDER_DATE 'orderDate',
+        IFNULL(SUM(hool.ORDERD_QUANTITY * hool.UNIT_SELLING_PRICE),0) 'sellingPrice',
+        hooh.ORDER_STATUS 'orderStatus'
+        FROM
+        hap_om_order_headers hooh
+        INNER JOIN
+        hap_org_companys hoc ON hooh.COMPANY_ID = hoc.COMPANY_ID
+        INNER JOIN
+        hap_ar_customers hac ON hooh.CUSTOMER_ID = hac.CUSTOMER_ID
+        LEFT JOIN
+        hap_om_order_lines hool ON hooh.HEADER_ID = hool.HEADER_ID
+        WHERE hooh.header_id= #{headerId}
+    </select>
+    <update id="updateHeader" parameterType="hbi.core.dto.OrderHeader">
+        UPDATE `hap_om_order_headers` SET order_number=#{orderNumber},company_id=#{companyId},customer_id=#{customerId},order_date=#{orderDate}
+        WHERE header_id=#{headerId}
+    </update>
+    <delete id="deleteById" parameterType="Integer">
+        DELETE FROM `hap_om_order_headers` WHERE header_id=#{headerId}
+    </delete>
+</mapper>
